@@ -3,6 +3,20 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'dart:convert';
 
+Future<String?> _getIpAddress() async {
+  try {
+    final response =
+        await http.get(Uri.parse('https://api.ipify.org?format=json'));
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      return data['ip'];
+    }
+  } catch (e) {
+    print('Error getting IP address: $e');
+  }
+  return null;
+}
+
 List<String> brodyLunchList = [];
 List<String> brodyDinnerList = [];
 List<String> akersLunchList = [];
@@ -19,8 +33,9 @@ class BackendBloc extends Cubit<List<List<String>>> {
   BackendBloc() : super([]);
 
   Future<void> fetchData() async {
+    String? ipAddress = await _getIpAddress();
     final response =
-        await http.get(Uri.parse('http://35.21.76.20:5000/api/data'));
+        await http.get(Uri.parse('http://$ipAddress:5000/api/data'));
     if (response.statusCode == 200) {
       final List<dynamic> responseData = json.decode(response.body);
       final List<List<String>> dataLists = responseData
@@ -80,7 +95,7 @@ class _MyWidgetState extends State<MyWidget> {
       body: Center(
         child: Builder(
           builder: (context) {
-            final backendBloc = BlocProvider.of<BackendBloc>(context);
+            //final backendBloc = BlocProvider.of<BackendBloc>(context);
 
             return BlocBuilder<BackendBloc, List<List<String>>>(
               builder: (context, state) {
@@ -338,8 +353,6 @@ class SettingsScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SettingsBox(text: 'Quiet Notifications'),
-            SettingsBox(text: 'Option 2'),
-            SettingsBox(text: 'Option 3'),
           ],
         ),
       ),
